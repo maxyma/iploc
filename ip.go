@@ -54,3 +54,12 @@ func FromStringToIP(s string) (MyIP) {
     return ip
 }
 
+func FromBytesToIP(b [8]byte) (MyIP) {
+    return MyIP{ []byte{
+        b[0] << 4 | b[1],
+        b[2] << 4 | b[3],
+        b[4] << 4 | b[5],
+        b[6] << 4 | b[7],
+    } }
+}
+

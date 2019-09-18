@@ -12,13 +12,14 @@ func (t *Tree) SearchIP(ip MyIP) (MyIP) {
         p uint32
         depth int8
         found bool
-        node *Node
     )
     paths := ip.ToPath()
     track := [8]uint32{}
+    trackip := [8]byte{}
 
     for p = t.root.child; p!=0; {
         if t.Get(p).value == paths[depth] {
+            trackip[depth] = t.Get(p).value
             if depth+1 < 8 {
                 p = t.Get(p).child
             } else {
@@ -33,24 +34,19 @@ func (t *Tree) SearchIP(ip MyIP) (MyIP) {
             p = t.Get(p).next
         }
     }
-
-    if p != 0 {
-        node = t.Get(p)
-    }
     if !found {
         for i:=depth; i>=0; i-- {
             if track[i] != 0 {
-                node = t.Get(track[i]).deepRight(t)
+                t.Get(track[i]).deepRight(t, byte(depth), &trackip)
                 break
             }
         }
     }
-    return FromUint32ToIP(node.ipv)
+    return FromBytesToIP(trackip)
 }
 
 func (t *Tree) AppendIP(ip MyIP){
-    n := t.root.appendIP(t, 0, ip.ToPath())
-    n.ipv = ip.ToUint32()
+    t.root.appendIP(t, 0, ip.ToPath())
 }
 
 func (t *Tree) Count() (int) {
