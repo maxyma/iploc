@@ -1,14 +1,14 @@
-package main
+package dict
 
 import (
     "net"
 )
 
-type MyIP struct {
+type IP struct {
     net.IP
 }
 
-func (ip *MyIP) ToPath() [8]byte{
+func (ip *IP) ToPath() [8]byte{
     return [8]byte{
         ip.IP[0] >> 4,
         ip.IP[0] << 4 >> 4,
@@ -21,7 +21,7 @@ func (ip *MyIP) ToPath() [8]byte{
     }
 }
 
-func (ip *MyIP) ToPath4() [4]byte{
+func (ip *IP) ToPath4() [4]byte{
     return [4]byte{
         ip.IP[0],
         ip.IP[1],
@@ -30,7 +30,7 @@ func (ip *MyIP) ToPath4() [4]byte{
     }
 }
 
-func (ip *MyIP) ToUint32() uint32{
+func (ip *IP) ToUint32() uint32{
     sum := uint32(0)
     sum += uint32(ip.IP[0]) << 24
     sum += uint32(ip.IP[1]) << 16
@@ -39,8 +39,8 @@ func (ip *MyIP) ToUint32() uint32{
     return sum
 }
 
-func FromUint32ToIP(l uint32) (MyIP) {
-    return MyIP{ []byte{
+func NewUint32IP(l uint32) (IP) {
+    return IP{ []byte{
             byte(l>>24),
             byte(l>>16),
             byte(l>>8),
@@ -48,14 +48,14 @@ func FromUint32ToIP(l uint32) (MyIP) {
         } }
 }
 
-func FromStringToIP(s string) (MyIP) {
-    ip := MyIP{}
+func NewStringIP(s string) (IP) {
+    ip := IP{}
     ip.IP = net.ParseIP(s).To4()
     return ip
 }
 
-func FromBytesToIP(b [8]byte) (MyIP) {
-    return MyIP{ []byte{
+func NewBytesIP(b [8]byte) (IP) {
+    return IP{ []byte{
         b[0] << 4 | b[1],
         b[2] << 4 | b[3],
         b[4] << 4 | b[5],

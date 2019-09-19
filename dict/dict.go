@@ -1,4 +1,4 @@
-package main
+package dict
 
 import (
     "encoding/csv"
@@ -8,7 +8,7 @@ import (
     "runtime/debug"
 )
 
-func load_dict() (*Tree) {
+func Load() (*Tree) {
     var (
         s []string
         buf []byte
@@ -26,14 +26,14 @@ func load_dict() (*Tree) {
     csvreader.ReuseRecord = true
     csvreader.TrimLeadingSpace = true
 
-    root := &Tree{}
+    root := NewTree()
     root.Extend(bytes.Count(buf,[]byte{'\n'})+1)
 
     for {
         if s,err = csvreader.Read(); err!=nil {
             break
         }
-        root.AppendIP(FromStringToIP(s[0]))
+        root.AppendIP(NewStringIP(s[0]))
     }
 
     if err!=nil && err!=io.EOF {
