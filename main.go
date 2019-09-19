@@ -26,11 +26,12 @@ func main(){
     //spew.Dump(root.child)
 
 	log.Printf("%+v\n", dict.NewBytesIP([8]byte{8,1,0,2,0,3,0,4}))
+	log.Printf("%+v\n", dict.NewStringIP("333.0.0.0"))
 
 	log.Printf("find %+v\n", root.SearchIP(dict.NewStringIP("0.0.0.0")))
 	log.Printf("find %+v\n", root.SearchIP(dict.NewStringIP("1.2.3.5")))
 	log.Printf("find %+v\n", root.SearchIP(dict.NewStringIP("223.2.3.4")))
-	log.Printf("find %+v\n", root.SearchIP(dict.NewStringIP("33.2.3.5")))
+	log.Printf("find %+v\n", root.SearchIP(dict.NewStringIP("333.0.0.0")))
 	log.Printf("find %+v\n", root.SearchIP(dict.NewStringIP("4.4.4.4")))
 	log.Printf("find %+v\n", root.SearchIP(dict.NewStringIP("255.255.0.0")))
 	log.Printf("find %+v\n", root.SearchIP(dict.NewStringIP("8.8.8.8")))

@@ -39,6 +39,10 @@ func (ip *IP) ToUint32() uint32{
     return sum
 }
 
+func (ip *IP) Len() int {
+    return len(ip.IP)
+}
+
 func NewUint32IP(l uint32) (IP) {
     return IP{ []byte{
             byte(l>>24),

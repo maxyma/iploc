@@ -12,6 +12,9 @@ func NewTree() (t *Tree) {
 }
 
 func (t *Tree) SearchIP(ip IP) (IP) {
+    if ip.Len() == 0 {
+        return ip
+    }
     var (
         p uint32
         depth int8
@@ -50,7 +53,9 @@ func (t *Tree) SearchIP(ip IP) (IP) {
 }
 
 func (t *Tree) AppendIP(ip IP){
-    t.root.appendIP(t, 0, ip.ToPath())
+    if ip.Len() > 0 {
+        t.root.appendIP(t, 0, ip.ToPath())
+    }
 }
 
 func (t *Tree) Count() (int) {
