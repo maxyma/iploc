@@ -1,6 +1,6 @@
 package dict
 
-//import     "fmt"
+//import "fmt"
 
 type Tree struct {
     root Node
@@ -11,14 +11,15 @@ func NewTree() (t *Tree) {
     return &Tree{}
 }
 
-func (t *Tree) SearchIP(ip IP) (IP) {
+func (t *Tree) SearchIP(ip IP) ([]string) {
     if ip.Len() == 0 {
-        return ip
+        return nil
     }
     var (
         p uint32
         depth int8
         found bool
+        node *Node
     )
     paths := ip.ToPath()
     track := [8]uint32{}
@@ -44,17 +45,20 @@ func (t *Tree) SearchIP(ip IP) (IP) {
     if !found {
         for i:=depth; i>=0; i-- {
             if track[i] != 0 {
-                t.GetNode(track[i]).deepRight(t, byte(depth), &trackip)
+                node = t.GetNode(track[i]).deepRight(t, byte(i), &trackip)
                 break
             }
         }
+    } else {
+        node = t.GetNode(p)
     }
-    return NewBytesIP(trackip)
+    return []string{ NewBytesIP(trackip).String(), node.Retrieve() }
 }
 
-func (t *Tree) AppendIP(ip IP){
+func (t *Tree) AppendIP(ip IP, loc string) {
     if ip.Len() > 0 {
-        t.root.appendIP(t, 0, ip.ToPath())
+        node := t.root.appendIP(t, 0, ip.ToPath())
+        node.Store(loc)
     }
 }
 
@@ -64,6 +68,12 @@ func (t *Tree) Count() (int) {
 
 func (t *Tree) Extend(size int) {
     t.mapping = make([]Node, 1, size)
+}
+
+func (t *Tree) Shrink() {
+    a := make([]Node, len(t.mapping))
+    copy(a, t.mapping)
+    t.mapping = a
 }
 
 func (t *Tree) AppendNode(n Node) (p uint32){

@@ -33,12 +33,14 @@ func Load() (*Tree) {
         if s,err = csvreader.Read(); err!=nil {
             break
         }
-        root.AppendIP(NewStringIP(s[0]))
+        root.AppendIP(NewStringIP(s[0]), s[2])
     }
 
     if err!=nil && err!=io.EOF {
         panic(err)
     }
+
+    root.Shrink()
 
     debug.SetGCPercent(gcp)
     debug.FreeOSMemory()

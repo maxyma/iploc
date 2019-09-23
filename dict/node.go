@@ -1,12 +1,16 @@
 package dict
 
+import (
+    "strconv"
+)
+
 type Node struct {
+    loc uint16
     child uint16
     next uint16
     value byte
     c8b byte        // 2^(8+16=24) = 16777216
     n8b byte        // 2^(8+16=24) = 16777216
-    _ byte          // blank
 }
 
 func NewNode(val byte, next uint32) (Node) {
@@ -16,6 +20,7 @@ func NewNode(val byte, next uint32) (Node) {
 }
 
 func (n *Node) deepRight(t *Tree, depth byte, trackip *[8]byte) (*Node) {
+    trackip[depth] = n.value
     if n.getChild() == 0 {
         return n
     }
@@ -23,7 +28,6 @@ func (n *Node) deepRight(t *Tree, depth byte, trackip *[8]byte) (*Node) {
     for p=n.getChild(); p!=0; p=t.GetNode(p).getNext() {
         pre = p
     }
-    trackip[depth] = t.GetNode(pre).value
     return t.GetNode(pre).deepRight(t, depth+1, trackip)
 }
 
@@ -87,5 +91,23 @@ func (t *Node) getNext() uint32 {
 func (t *Node) setNext(p uint32) {
     t.n8b = byte(p >> 16)
     t.next = uint16(p)
+}
+
+func (t *Node) Store(loc string) {
+    i,err := strconv.Atoi(loc)
+    if err!=nil {
+        i = int(loc[0]) << 8 | int(loc[1])
+    } else {
+        i = i/100
+    }
+    t.loc = uint16(i)
+}
+
+func (t *Node) Retrieve() string {
+    if t.loc > 9999 {
+        return string([]byte{byte(t.loc >> 8), byte(t.loc)})
+    } else {
+        return strconv.Itoa(int(t.loc))
+    }
 }
 
