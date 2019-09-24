@@ -27,7 +27,7 @@ func Load() (*Tree) {
     csvreader.TrimLeadingSpace = true
 
     root := NewTree()
-    root.Extend(bytes.Count(buf,[]byte{'\n'})+1)
+    root.Extend(bytes.Count(buf,[]byte{'\n'})*3)
 
     for {
         if s,err = csvreader.Read(); err!=nil {
