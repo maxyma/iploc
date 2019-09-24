@@ -33,7 +33,7 @@ func Load() (*Tree) {
         if s,err = csvreader.Read(); err!=nil {
             break
         }
-        root.AppendIP(NewStringIP(s[0]), s[2])
+        root.AppendRecord(NewRecord(s[0],s[1],s[2],s[3]))
     }
 
     if err!=nil && err!=io.EOF {

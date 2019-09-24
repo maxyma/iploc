@@ -1,26 +1,22 @@
 package dict
 
-import (
-    "strconv"
-)
-
 type Node struct {
-    loc uint16
     child uint16
     next uint16
-    value byte
     c8b byte        // 2^(8+16=24) = 16777216
     n8b byte        // 2^(8+16=24) = 16777216
+    pack uint16     // 低4位存节点的值  高12位存IPLOC的指针
 }
 
 func NewNode(val byte, next uint32) (Node) {
-    n := Node{value:val}
+    n := Node{}
+    n.SetValue(val)
     n.setNext(next)
     return n
 }
 
 func (n *Node) deepRight(t *Tree, depth byte, trackip *[8]byte) (*Node) {
-    trackip[depth] = n.value
+    trackip[depth] = n.GetValue()
     if n.getChild() == 0 {
         return n
     }
@@ -39,9 +35,9 @@ func (n *Node) appendIP(t *Tree, depth byte, paths [8]byte) (*Node) {
         n.setChild(p)
     } else {
         for p=n.getChild(); p!=0; p=t.GetNode(p).getNext() {
-            if t.GetNode(p).value == val {
+            if t.GetNode(p).GetValue() == val {
                 break
-            } else if t.GetNode(p).value > val {
+            } else if t.GetNode(p).GetValue() > val {
                 np := t.AppendNode(NewNode(val,p))
                 if pre!=0 {
                     t.GetNode(pre).setNext(np)
@@ -75,39 +71,37 @@ func (n *Node) count(t *Tree) (c int){
     return
 }
 
-func (t *Node) getChild() uint32 {
-    return uint32(t.c8b) << 16 | uint32(t.child)
+func (n *Node) getChild() uint32 {
+    return uint32(n.c8b) << 16 | uint32(n.child)
 }
 
-func (t *Node) setChild(p uint32) {
-    t.c8b = byte(p >> 16)
-    t.child = uint16(p)
+func (n *Node) setChild(p uint32) {
+    n.c8b = byte(p >> 16)
+    n.child = uint16(p)
 }
 
-func (t *Node) getNext() uint32 {
-    return uint32(t.n8b) << 16 | uint32(t.next)
+func (n *Node) getNext() uint32 {
+    return uint32(n.n8b) << 16 | uint32(n.next)
 }
 
-func (t *Node) setNext(p uint32) {
-    t.n8b = byte(p >> 16)
-    t.next = uint16(p)
+func (n *Node) setNext(p uint32) {
+    n.n8b = byte(p >> 16)
+    n.next = uint16(p)
 }
 
-func (t *Node) Store(loc string) {
-    i,err := strconv.Atoi(loc)
-    if err!=nil {
-        i = int(loc[0]) << 8 | int(loc[1])
-    } else {
-        i = i/100
-    }
-    t.loc = uint16(i)
+func (n *Node) SetValue(v byte) {
+    n.pack = (n.pack >> 4 << 4) | uint16(v)
 }
 
-func (t *Node) Retrieve() string {
-    if t.loc > 9999 {
-        return string([]byte{byte(t.loc >> 8), byte(t.loc)})
-    } else {
-        return strconv.Itoa(int(t.loc))
-    }
+func (n *Node) GetValue() byte {
+    return byte(n.pack) << 4 >> 4
+}
+
+func (n *Node) SetLoc(v uint16) {
+    n.pack = (n.pack << 12 >> 12) | (v << 4)
+}
+
+func (n *Node) GetLoc() uint16 {
+    return n.pack >> 4
 }
 

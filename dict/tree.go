@@ -5,13 +5,19 @@ package dict
 type Tree struct {
     root Node
     mapping []Node
+    records []Record
+    iploc map[string]uint16
 }
 
 func NewTree() (t *Tree) {
-    return &Tree{}
+    return &Tree{
+        mapping : make([]Node,1),
+        records : make([]Record,1),
+        iploc : make(map[string]uint16),
+    }
 }
 
-func (t *Tree) SearchIP(ip IP) ([]string) {
+func (t *Tree) SearchIP(ip IP) (*Record) {
     if ip.Len() == 0 {
         return nil
     }
@@ -26,8 +32,8 @@ func (t *Tree) SearchIP(ip IP) ([]string) {
     trackip := [8]byte{}
 
     for p = t.root.getChild(); p!=0; {
-        if t.GetNode(p).value == paths[depth] {
-            trackip[depth] = t.GetNode(p).value
+        if t.GetNode(p).GetValue() == paths[depth] {
+            trackip[depth] = t.GetNode(p).GetValue()
             if depth+1 < 8 {
                 p = t.GetNode(p).getChild()
             } else {
@@ -35,7 +41,7 @@ func (t *Tree) SearchIP(ip IP) ([]string) {
                 break
             }
             depth++
-        } else if t.GetNode(p).value > paths[depth] {
+        } else if t.GetNode(p).GetValue() > paths[depth] {
             break
         } else {
             track[depth] = p
@@ -52,13 +58,21 @@ func (t *Tree) SearchIP(ip IP) ([]string) {
     } else {
         node = t.GetNode(p)
     }
-    return []string{ NewBytesIP(trackip).String(), node.Retrieve() }
+    return &t.records[node.GetLoc()]
 }
 
-func (t *Tree) AppendIP(ip IP, loc string) {
+func (t *Tree) AppendRecord(r Record) {
+    ip := NewStringIP(r.from)
     if ip.Len() > 0 {
         node := t.root.appendIP(t, 0, ip.ToPath())
-        node.Store(loc)
+        if v,ok:=t.iploc[r.loc]; ok==true {
+            node.SetLoc(v)
+        } else {
+            idx := uint16(len(t.records))
+            node.SetLoc(idx)
+            t.iploc[r.loc] = idx
+            t.records = append(t.records, r)
+        }
     }
 }
 
@@ -74,6 +88,12 @@ func (t *Tree) Shrink() {
     a := make([]Node, len(t.mapping))
     copy(a, t.mapping)
     t.mapping = a
+
+    b := make([]Record, len(t.records))
+    copy(b, t.records)
+    t.records = b
+
+    t.iploc = nil
 }
 
 func (t *Tree) AppendNode(n Node) (p uint32){
