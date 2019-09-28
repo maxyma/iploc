@@ -18,17 +18,23 @@ func main(){
     http.HandleFunc("/", forbid)
     http.HandleFunc("/favicon.ico", forbid)
     http.HandleFunc("/iploc", iploc)
-    http.ListenAndServe(":8088", nil)
+    rl := NewReloader(":8088")
+    if err:=rl.Bind(); err==nil {
+        http.Serve(rl.GetListener(), nil)
+        rl.Wait()
+    }
 }
 
 func iploc(w http.ResponseWriter, req *http.Request){
     loc := root.SearchIP(dict.NewStringIP(req.URL.Query().Get("ip")))
-    if out,err:=json.Marshal(NewNode2(loc)); err==nil {
-        w.WriteHeader(http.StatusOK)
-        w.Write(out)
-    } else {
-        w.WriteHeader(http.StatusInternalServerError)
+    if loc!=nil {
+        if out,err:=json.Marshal(NewNode2(loc)); err==nil {
+            w.WriteHeader(http.StatusOK)
+            w.Write(out)
+            return
+        }
     }
+    w.WriteHeader(http.StatusInternalServerError)
 }
 
 func forbid(rw http.ResponseWriter,req *http.Request){
