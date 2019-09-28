@@ -1,45 +1,52 @@
 package main
 
 import (
-//    "fmt"
-//    "runtime"
-    "log"
-    "unsafe"
     "iploc/dict"
+    "net/http"
+    "encoding/json"
 )
 
+var (
+    root *dict.Tree
+)
+
+func init(){
+    root = dict.Load()
+}
+
 func main(){
+    http.HandleFunc("/", forbid)
+    http.HandleFunc("/favicon.ico", forbid)
+    http.HandleFunc("/iploc", iploc)
+    http.ListenAndServe(":8088", nil)
+}
 
-    //runtime.LockOSThread()
+func iploc(w http.ResponseWriter, req *http.Request){
+    loc := root.SearchIP(dict.NewStringIP(req.URL.Query().Get("ip")))
+    if out,err:=json.Marshal(NewNode2(loc)); err==nil {
+        w.WriteHeader(http.StatusOK)
+        w.Write(out)
+    } else {
+        w.WriteHeader(http.StatusInternalServerError)
+    }
+}
 
-    log.Println("loading...")
+func forbid(rw http.ResponseWriter,req *http.Request){
+    rw.WriteHeader(http.StatusForbidden)
+}
 
-    //runtime.MemProfileRate = 1
+type Node2 struct{
+    Left    string      `json:"rfrom"`
+    Right   string      `json:"rto"`
+    Value   string      `json:"loc"`
+    Isp     string      `json:"isp"`
+}
 
-    //mk_cpu_prof()
-
-    root := dict.Load()
-
-    //stop_cpu_pro()
-
-    log.Printf("loaded! count:%d\n", root.Count())
-    //spew.Dump(root.child)
-
-	log.Printf("%+v\n", dict.NewBytesIP([8]byte{8,1,0,2,0,3,0,4}))
-	log.Printf("%+v\n", dict.NewStringIP("333.0.0.0"))
-
-	log.Printf("find %+v\n", root.SearchIP(dict.NewStringIP("0.0.0.0")))
-	log.Printf("find %+v\n", root.SearchIP(dict.NewStringIP("1.2.3.5")))
-	log.Printf("find %+v\n", root.SearchIP(dict.NewStringIP("223.2.3.4")))
-	log.Printf("find %+v\n", root.SearchIP(dict.NewStringIP("333.0.0.0")))
-	log.Printf("find %+v\n", root.SearchIP(dict.NewStringIP("4.4.4.4")))
-	log.Printf("find %+v\n", root.SearchIP(dict.NewStringIP("255.255.0.0")))
-	log.Printf("find %+v\n", root.SearchIP(dict.NewStringIP("8.8.8.8")))
-
-	log.Printf("sizeof(Node{}) %d\n", unsafe.Sizeof(dict.Node{}))
-
-    //mk_mem_prof().Close()
-
-    <-make(chan int)
+func NewNode2(loc []string) Node2 {
+    return Node2{
+        Left : loc[0],
+        Value : loc[1],
+        Isp : loc[2],
+    }
 }
 

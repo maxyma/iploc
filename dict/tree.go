@@ -5,19 +5,19 @@ package dict
 type Tree struct {
     root Node
     mapping []Node
-    records []Record
+    records []RecordLite
     iploc map[string]uint16
 }
 
 func NewTree() (t *Tree) {
     return &Tree{
         mapping : make([]Node,1),
-        records : make([]Record,1),
+        records : make([]RecordLite,1),
         iploc : make(map[string]uint16),
     }
 }
 
-func (t *Tree) SearchIP(ip IP) (*Record) {
+func (t *Tree) SearchIP(ip IP) ([]string) {
     if ip.Len() == 0 {
         return nil
     }
@@ -58,7 +58,8 @@ func (t *Tree) SearchIP(ip IP) (*Record) {
     } else {
         node = t.GetNode(p)
     }
-    return &t.records[node.GetLoc()]
+    r := t.records[node.GetLoc()]
+    return []string{NewBytesIP(trackip).String(), r.loc, r.isp}
 }
 
 func (t *Tree) AppendRecord(r Record) {
@@ -71,7 +72,7 @@ func (t *Tree) AppendRecord(r Record) {
             idx := uint16(len(t.records))
             node.SetLoc(idx)
             t.iploc[r.loc] = idx
-            t.records = append(t.records, r)
+            t.records = append(t.records, r.Lite())
         }
     }
 }
@@ -89,7 +90,7 @@ func (t *Tree) Shrink() {
     copy(a, t.mapping)
     t.mapping = a
 
-    b := make([]Record, len(t.records))
+    b := make([]RecordLite, len(t.records))
     copy(b, t.records)
     t.records = b
 
