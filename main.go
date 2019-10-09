@@ -5,6 +5,7 @@ import (
     "net/http"
     "encoding/json"
     "flag"
+    "github.com/maxyma/reloader"
 )
 
 var (
@@ -15,14 +16,15 @@ func main(){
     //解析命令行参数
     serv_host := flag.String("host", "", "Hostname or IP")
     serv_port := flag.String("port", "8811", "Port to Listen on.")
+    dict_file := flag.String("dict", "texts.txt", "IP dict file")
     flag.Parse()
     //load dict
-    root = dict.Load()
+    root = dict.Load(*dict_file)
     //web server
     http.HandleFunc("/", forbid)
     http.HandleFunc("/favicon.ico", forbid)
     http.HandleFunc("/iploc", iploc)
-    rl := NewReloader(*serv_host+":"+*serv_port)
+    rl := reloader.NewReloader(*serv_host+":"+*serv_port)
     if err:=rl.Bind(); err==nil {
         rl.HttpServe(&http.Server{})
     } else {

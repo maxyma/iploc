@@ -8,7 +8,7 @@ import (
     "runtime/debug"
 )
 
-func Load() (*Tree) {
+func Load(file string) (*Tree) {
     var (
         s []string
         buf []byte
@@ -17,7 +17,7 @@ func Load() (*Tree) {
 
     gcp := debug.SetGCPercent(300)
 
-    if buf,err = ioutil.ReadFile("texts.txt"); err!=nil {
+    if buf,err = ioutil.ReadFile(file); err!=nil {
         panic(err)
     }
 
