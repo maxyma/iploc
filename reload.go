@@ -8,14 +8,26 @@ import (
     "sync"
     "net"
     "log"
+    "net/http"
 )
 
 /*
 基于`net.TCPListener`的无间断重启服务，暴露listener供业务代码扩充
 
-简单用法：
+1.`HTTP Server`简单用法：
 func main(){
     rl := NewReloader("127.0.0.1:8080")
+    if err:=rl.Bind(); err==nil {
+        http.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
+            w.Write([]byte("Hello, world!\n"))
+        })
+        rl.HttpServe(&http.Server{})
+    }
+}
+
+2.socket server用法
+func main(){
+    rl := NewReloader("127.0.0.1:9001")
     if err:=rl.Bind(); err==nil {
         http.Serve(rl.GetListener(), func(w http.ResponseWriter, req *http.Request) {
             w.Write([]byte("Hello, world!\n"))
@@ -35,6 +47,7 @@ type Reloader struct {
     *net.TCPListener    //"继承"自net.TCPListener，拥有它全部public方法
     listen string       //监听的"host:port"
     wg sync.WaitGroup   //等待结束用户请求
+    http *http.Server   //HTTP-server
 }
 
 //"重载"Accept()加wg
@@ -73,11 +86,16 @@ func (r *Reloader) Bind() (err error) {
     return
 }
 
+//使用net/http包Serve()，重启时不需要调用r.Wait()
+func (r *Reloader) HttpServe(s *http.Server) {
+    r.http = s
+    r.http.Serve(r.GetListener())
+}
+
 //等待结束用户请求
 func (r *Reloader) Wait(){// {{{
     r.wg.Wait()
 }// }}}
-
 
 func (r *Reloader) spawn() {// {{{
     fd,_ := r.File()
@@ -102,8 +120,12 @@ func (r *Reloader) watch() {// {{{
         for {
             switch(<-sigchan) {
             case syscall.SIGTERM:
-                //TCPListener.Close()会结束net/http.Serve()的"阻塞"
-                r.Close()
+                signal.Ignore(syscall.SIGHUP, syscall.SIGTERM)
+                if r.http != nil {
+                    r.http.Shutdown(nil) //会处理http协议的keep-alive
+                } else {
+                    r.Close()
+                }
             case syscall.SIGHUP:
                 r.spawn()
             }
