@@ -59,7 +59,7 @@ func (t *Tree) SearchIP(ip IP) ([]string) {
         node = t.GetNode(p)
     }
     r := t.records[node.GetLoc()]
-    return []string{NewBytesIP(trackip).String(), r.loc, r.isp}
+    return []string{NewBytesIP(trackip).String(), r.loc}
 }
 
 func (t *Tree) AppendRecord(r Record) {

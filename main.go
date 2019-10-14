@@ -50,16 +50,13 @@ func forbid(rw http.ResponseWriter,req *http.Request){
 
 type Node2 struct{
     Left    string      `json:"rfrom"`
-    Right   string      `json:"rto"`
     Value   string      `json:"loc"`
-    Isp     string      `json:"isp"`
 }
 
 func NewNode2(loc []string) Node2 {
     return Node2{
         Left : loc[0],
         Value : loc[1],
-        Isp : loc[2],
     }
 }
 
